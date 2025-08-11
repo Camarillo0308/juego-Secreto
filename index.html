@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Te Amo con fuegos artificiales</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<script>
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+
+const phrase = "Te amo";
+const fontSize = 28; 
+const columnSpacing = 3; 
+const columns = Math.floor(canvas.width / (fontSize * columnSpacing));
+const drops = Array(columns).fill(1);
+
+// Partículas para fuegos artificiales
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.radius = Math.random() * 2 + 1;
+    this.color = color;
+    this.speedX = (Math.random() - 0.5) * 5;
+    this.speedY = (Math.random() - 0.5) * 5;
+    this.alpha = 1;
+    this.decay = 0.02 + Math.random() * 0.02;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.alpha -= this.decay;
+  }
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = this.alpha;
+    ctx.beginPath();
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 10;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  isAlive() {
+    return this.alpha > 0;
+  }
+}
+
+const particles = [];
+
+function createFireworks(x, y) {
+  const colors = ['#FF4444', '#FF88AA', '#FF2222', '#FF66CC'];
+  for(let i = 0; i < 30; i++) {
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    particles.push(new Particle(x, y, color));
+  }
+}
+
+function draw() {
+  // Fondo translúcido para el rastro
+  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Texto "Te amo" en rojo
+  ctx.fillStyle = "red"; 
+  ctx.font = fontSize + "px monospace";
+
+  for (let i = 0; i < drops.length; i++) {
+    ctx.fillText(phrase, i * fontSize * columnSpacing, drops[i] * fontSize * 5);
+
+    if (drops[i] * fontSize * 2 > canvas.height && Math.random() > 0.98) {
+      drops[i] = 0;
+    }
+    drops[i] += 0.2;
+  }
+
+  // Dibujar partículas y actualizar
+  for (let i = particles.length -1; i >= 0; i--) {
+    const p = particles[i];
+    p.update();
+    p.draw();
+    if (!p.isAlive()) {
+      particles.splice(i, 1);
+    }
+  }
+}
+
+canvas.addEventListener('click', (e) => {
+  createFireworks(e.clientX, e.clientY);
+});
+
+setInterval(draw, 70);
+
+</script>
+
+</body>
+</html>
